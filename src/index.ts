@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/weapons", weaponRoute);
+app.use("/api/weapon", weaponRoute);
 
 app.get("/ping", (req, res) => {
   res.status(200).send({ prova: "ciao" });
