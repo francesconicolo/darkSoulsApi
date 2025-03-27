@@ -1,30 +1,64 @@
 export type Weapon = {
-  idWeapon: string;
-  name: string;
-  reinforce: number;
-  type: WeaponTypeEnum;
-  reqStr: number;
-  reqDex: number;
-  reqInt: number;
-  reqFth: number;
-  scaStr: WeaponScalingEnum | null;
-  scaDex: WeaponScalingEnum | null;
-  scaInt: WeaponScalingEnum | null;
-  scaFth: WeaponScalingEnum | null;
-  physicalAtk: boolean;
-  magicAtk: boolean;
-  fireAtk: boolean;
-  lightingAtk: boolean;
-  totalAtk: boolean;
-  bleed: number | null;
-  poison: number | null;
-  divine: number | null;
-  occult: number | null;
-  magAdjust: number | null;
-  weight: boolean;
+  name: string,
+  type: string,
+  category: WeaponCategoryEnum,
+  attack_type: string,
+  enchantable: boolean,
+  special: string,
+  weight: number,
+  durability: number,
+  stability: number,
+  requirements:{
+    strength: number,
+    dexterity: number,
+    intelligence: number,
+    faith: number,
+  },
+  upgrade:{
+    regular:Upgrade[],
+    chaos:Upgrade[],
+    raw:Upgrade[],
+    crystal:Upgrade[],
+    divine:Upgrade[],
+    occult:Upgrade[],
+    lightning:Upgrade[],
+    magic:Upgrade[],
+    enchanted:Upgrade[],
+    fire:Upgrade[]
+  },
+  defensive_stats: {
+    physical:number,
+    magic:number,
+    fire:number,
+    lightning:number
+  }
 };
 
-export enum WeaponTypeEnum {
+
+export type Upgrade = {
+    level: number,
+    scalings: {
+      strength: WeaponScalingEnum,
+      dexterity: WeaponScalingEnum,
+      intelligence: WeaponScalingEnum,
+      faith: WeaponScalingEnum
+    }
+    offensive_stats: {
+      physical_damage: number,
+      magic_damage: number,
+      fire_damage: number,
+      lightning_damage: number,
+      bleed:number,
+      poison:number,
+      occult:number,
+      divine:number,
+      critical:number,
+      magic_adjustment: number
+    }
+}
+
+
+export enum WeaponCategoryEnum {
   AXES = "Axes",
   BOWS = "Bows",
   CATALYST = "Catalyst",
@@ -59,4 +93,6 @@ export enum WeaponScalingEnum {
   C = "C",
   D = "D",
   E = "E",
+  NONE = "−"
 }
+
