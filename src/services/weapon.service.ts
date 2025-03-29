@@ -8,7 +8,7 @@ const getAll = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;  // Pagina predefinita: 1
-  const limit = parseInt(params.limit as string) || 5; // Limite predefinito: 10
+  const limit = parseInt(params.limit as string) || 3; // Limite predefinito: 3
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
