@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   app:
-    container_name: node-app
     build: .
     ports: 
       - "3000:3000"
@@ -11,5 +10,4 @@ services:
     restart: unless-stopped
     volumes:
       - .:/app
-      - /app/node_modules
     command: ["node","./dist/index.js"]
