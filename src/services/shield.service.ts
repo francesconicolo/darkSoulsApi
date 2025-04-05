@@ -9,7 +9,7 @@ const getAll = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;  // Pagina predefinita: 1
-  const limit = parseInt(params.limit as string) || 3; // Limite predefinito: 3
+  const limit = (parseInt(params.limit as string)>6 ? 6 : parseInt(params.limit as string)) || 2; // Limite predefinito: 3
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
@@ -36,7 +36,6 @@ const getAll = async (req: Request) => {
         stability: 1,
         requirements: 1,
         upgrade: 1,
-        defensive_stats: 1,
       },
     },
     {
@@ -55,7 +54,6 @@ const getAll = async (req: Request) => {
           stability: "$stability",
           requirements: "$requirements",
           upgrade: "$upgrade",
-          defensive_stats: "$defensive_stats",
         },
       },
     },
@@ -86,7 +84,7 @@ const getUpgrades = async (req: Request) => {
   const params = req.query;
 
   const page = parseInt(params.page as string) || 1;
-  const limit = parseInt(params.limit as string) || 5;
+  const limit = (parseInt(params.limit as string)>6 ? 6 : parseInt(params.limit as string)) || 2;
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
@@ -106,6 +104,10 @@ const getUpgrades = async (req: Request) => {
           params.dexterity ? { $eq: ["$$item.scalings.dexterity", params.dexterity] } : extractOperator(params.operator) === '$or' ? false : true,
           params.intelligence ? { $eq: ["$$item.scalings.intelligence", params.intelligence] } : extractOperator(params.operator) === '$or' ? false : true,
           params.faith ? { $eq: ["$$item.scalings.faith", params.faith] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.physical ? { $gte: ["$$item.defensive_stats.physical", Number(params.physical)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.magic ? { $gte: ["$$item.defensive_stats.magic", Number(params.magic)] }: extractOperator(params.operator)  === '$or' ? false : true,
+          params.fire ? { $gte: ["$$item.defensive_stats.fire", Number(params.fire)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.lightning ? { $gte: ["$$item.defensive_stats.lightning", Number(params.lightning)] } : extractOperator(params.operator)  === '$or' ? false : true,
         ]
       }
     }
@@ -138,7 +140,6 @@ const getUpgrades = async (req: Request) => {
           enchanted: createFilter("enchanted"),
           fire: createFilter("fire")
         },
-        defensive_stats: 1,
       }
     },
     {
@@ -157,7 +158,7 @@ const getUpgrades = async (req: Request) => {
           stability: "$stability",
           requirements: "$requirements",
           upgrade: "$upgrade",
-          defensive_stats: "$defensive_stats",
+
         },
       }
     },
@@ -205,7 +206,6 @@ const getById = async (req: Request) => {
         stability: 1,
         requirements: 1,
         upgrade: 1,
-        defensive_stats: 1,
       },
     },
     {
@@ -224,7 +224,6 @@ const getById = async (req: Request) => {
           stability: "$stability",
           requirements: "$requirements",
           upgrade: "$upgrade",
-          defensive_stats: "$defensive_stats",
         },
       },
     },

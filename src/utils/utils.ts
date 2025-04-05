@@ -45,11 +45,13 @@ export const filtersGetAllWeapon = (params:QueryString.ParsedQs) => {
 export const filtersByScaling = (params:QueryString.ParsedQs) => {
   const upgradeType=['regular','chaos','raw','crystal','divine','occult','lightning','magic','enchanted','fire'];
   const upgradeStat: { [key: string]: string[] }[] = [{'strength':['S','A','B','C','D','E','-']},{'dexterity':['S','A','B','C','D','E','-']},{'intelligence':['S','A','B','C','D','E','-']},{'faith':['S','A','B','C','D','E','-']}];
-  
+  const damageReduction=['physical','magic','fire','lightning]']
   let operator = extractOperator(params.operator)
   let queryScaling: { $or : Array<{ [key: string]: Array<{ [key: string]: string }> }> } = { $or: [] };
   
   let stats: { [key: string]: string[] }[] = [];
+  let damageReductionStats: { [key: string]: string[] }[] = [];
+
   let type:string[]=[];
   //ELABORAZIONE DI PARAMETRI
   Object.entries(params).forEach(([key, value]) => {
@@ -68,7 +70,15 @@ export const filtersByScaling = (params:QueryString.ParsedQs) => {
         }
       }
     }
-    
+    if(damageReduction.includes(key)){
+      if (Array.isArray(value)) {
+        damageReductionStats.push({ [key]: value.map(v => v.toString()) });
+      }else{
+        if (value && !isNaN(Number(value))) {
+          damageReductionStats.push({ [key]: [value.toString()] });
+        }
+      }
+    }
     if (Array.isArray(value) && key === 'type') {
       const filteredTypes = value.filter(v => upgradeType.includes(v.toString()))
       if (filteredTypes.length > 0) {
@@ -78,23 +88,36 @@ export const filtersByScaling = (params:QueryString.ParsedQs) => {
       type.push(value.toString()); // Trasforma in array se non lo è già
     }
   });
+  
+  type = type.length > 0 ? type : upgradeType; // Se non ci sono tipi specificati, usa tutti i tipi disponibili
 
-  stats = stats.length > 0 ? stats : upgradeStat;
-  type = type.length > 0 ? type : upgradeType;
 
   type.forEach((type) => {
     let conditions: Array<{ [key: string]: any }> = [];
     stats.forEach((element) => {
-      let temp: { $or: Array<{ [key: string]: string }> } = { $or: [] };
+      let tempStats: { $or: Array<{ [key: string]: string }> } = { $or: [] };
       const key = Object.keys(element)[0];
       const values = element[key] as string[];
       values.forEach((value: string) => {
-        temp.$or.push({ [`upgrade.${type}.scalings.${key}`]: value });
+        tempStats.$or.push({ [`upgrade.${type}.scalings.${key}`]: value });
       });
-      conditions.push(temp);
+      conditions.push(tempStats);
+    });
+    damageReductionStats.forEach((element) => {
+      let tempReduction: { $or: Array<{ [key: string]: { [key: string]: Number } }> } = { $or: [] };
+      const key = Object.keys(element)[0];
+      const values = element[key] as string[];
+      values.forEach((value: string) => {
+      tempReduction.$or.push({ [`upgrade.${type}.defensive_stats.${key}`]: { $gte: Number(value) } });
+      });
+      conditions.push(tempReduction);
     });
     queryScaling.$or.push({ [operator]: conditions });
   });
+  console.log(JSON.stringify(queryScaling, null, 2));
+  if (queryScaling.$or.length === 0) {
+    return {}; // Rimuovi la chiave $or se non ci sono condizioni
+  }
   return queryScaling
 }
 

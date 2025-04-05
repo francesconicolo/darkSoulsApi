@@ -8,7 +8,9 @@ const getAll = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;  // Pagina predefinita: 1
-  const limit = parseInt(params.limit as string) || 10; // Limite predefinito: 10
+  
+  const limit = (parseInt(params.limit as string)>10 ? 10 : parseInt(params.limit as string)) || 2;// Limite predefinito: 10
+
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
@@ -75,7 +77,7 @@ const getUpgrades = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;
-  const limit = parseInt(params.limit as string) || 10;
+  const limit =(parseInt(params.limit as string)>10 ? 10 : parseInt(params.limit as string)) || 2;
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
