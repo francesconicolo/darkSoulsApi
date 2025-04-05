@@ -3,6 +3,8 @@ import cors from "cors";
 import http from "http";
 import { weaponRoute } from "./routes/weapon.route";
 import { armorRoute } from "./routes/armor.route";
+import { shieldRoute } from "./routes/shield.route";
+
 
 
 
@@ -17,6 +19,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/weapon", weaponRoute);
 // Routes
 app.use("/api/armor", armorRoute);
+// Routes
+app.use("/api/shield", shieldRoute);
+
 
 
 app.get("/ping", (req, res) => {

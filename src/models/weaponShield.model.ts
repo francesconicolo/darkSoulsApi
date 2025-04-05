@@ -25,12 +25,6 @@ export type Weapon = {
     magic:Upgrade[],
     enchanted:Upgrade[],
     fire:Upgrade[]
-  },
-  defensive_stats: {
-    physical:number,
-    magic:number,
-    fire:number,
-    lightning:number
   }
 };
 
@@ -55,6 +49,12 @@ export type Upgrade = {
       critical:number,
       magic_adjustment: number
     }
+    defensive_stats: {
+      physical:number,
+      magic:number,
+      fire:number,
+      lightning:number
+    }
 }
 
 
@@ -76,8 +76,8 @@ export enum WeaponCategoryEnum {
   KATANAS = "Katanas",
   LANTERNS = "Lanterns",
   PYROMANCY_FLAMES = "Pyromancy Flames",
-  SHIELDS = "Shields",
-  SMALL_SHIELDS = "Small Shields",
+  SMALL_SHIELDS = "Small shields",
+  STANDARD_SHIELDS = "Standard shields",
   SPEARS = "Spears",
   STRAIGHT_SWORDS = "Straight Swords",
   TALISMAN = "Talisman",

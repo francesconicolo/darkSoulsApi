@@ -1,34 +1,63 @@
 import { Request } from "express";
 import getMongoClient from "../config/mongodb-client";
-import { Filter, WithId, Document } from "mongodb";
+import { Filter, WithId, Document, ObjectId } from "mongodb";
 import { extractOperator, filtersGetAllArmor } from "../utils/utils"; // Ensure filtersGetAll is a function
+
 
 const getAll = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;  // Pagina predefinita: 1
-  const limit = parseInt(params.limit as string) || 20; // Limite predefinito: 10
+  const limit = parseInt(params.limit as string) || 10; // Limite predefinito: 10
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
   const collection = db.collection("armors");
 
-  //CREO LA QUERY
+
   let query = filtersGetAllArmor(params);
-
-  // Calcola l'offset
-  const skip = (page - 1) * limit;
-
-  const data = await collection.find( query as Filter<Document>)
-  .skip(skip) //salto i risultati precedenti
-  .limit(limit) //limito il numero di risultati
-  .toArray();
-
+  
+  const pipeline = [
+    { $match:query},
+    {
+      $project: {
+        name: 1,
+        url_image: { $concat: [process.env.ASSETS_BASE_URL || "", { $toLower: { $replaceAll: { input: "$name", find: " ", replacement: "_" } } }, ".png"] },
+        type: 1,
+        category: 1,
+        weight: 1,
+        poise_ratio: 1,
+        total_poise: 1,
+        upgrade: 1,
+      },
+    },
+    {
+      $addFields: {
+        orderedFields: {
+          _id: "$_id",
+          name: "$name",
+          url_image: "$url_image",
+          type: "$type",
+          category: "$category",
+          weight: "$weight",
+          poise_ratio: "$poise_ratio",
+          total_poise: "$total_poise",
+          upgrade: "$upgrade",
+        },
+      },
+    },
+    { $replaceRoot: { newRoot: "$orderedFields" } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+  ];
+  
+  
+  
+  let data = await collection.aggregate(pipeline).toArray();
   const totalCount = await collection.countDocuments( query as Filter<WithId<Document>>);
 
   // Calcola il numero totale di pagine
   const totalPages = Math.ceil(totalCount / limit);
-
 
   const info ={
       pagination: {
@@ -42,12 +71,11 @@ const getAll = async (req: Request) => {
 
 };
 
-
 const getUpgrades = async (req: Request) => {
 
   const params = req.query;
   const page = parseInt(params.page as string) || 1;
-  const limit = parseInt(params.limit as string) || 20;
+  const limit = parseInt(params.limit as string) || 10;
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
@@ -74,12 +102,15 @@ const getUpgrades = async (req: Request) => {
       },
     },
   });
+
   let query=filtersGetAllArmor(params);
+  
   const pipeline = [
     { $match:query},
     {
       $project: {
         name: 1,
+        url_image: { $concat: [process.env.ASSETS_BASE_URL || "", { $toLower: { $replaceAll: { input: "$name", find: " ", replacement: "_" } } }, ".png"] },
         type: 1,
         category: 1,
         weight: 1,
@@ -88,15 +119,31 @@ const getUpgrades = async (req: Request) => {
         upgrade: createFilter(),
       },
     },
+    {
+      $addFields: {
+        orderedFields: {
+          _id: "$_id",
+          name: "$name",
+          url_image: "$url_image",
+          type: "$type",
+          category: "$category",
+          weight: "$weight",
+          poise_ratio: "$poise_ratio",
+          total_poise: "$total_poise",
+          upgrade: "$upgrade",
+        },
+      },
+    },
+    { $replaceRoot: { newRoot: "$orderedFields" } },
     { $skip: (page - 1) * limit },
     { $limit: limit },
   ];
   
   
-  const data = await collection.aggregate(pipeline).toArray();
+  let data = await collection.aggregate(pipeline).toArray();
   const totalCount = await collection.countDocuments(filtersGetAllArmor(params) as Filter<WithId<Document>>);
   const totalPages = Math.ceil(totalCount / limit);
-
+ 
   return {
     info: {
       pagination: {
@@ -110,8 +157,67 @@ const getUpgrades = async (req: Request) => {
   };
 };
 
+const getById = async (req: Request) => {
+  const params = req.query;
+  const client = await getMongoClient();
+  const db = client.db("DarkSouls");
+  const collection = db.collection("armors");
+
+  const pipeline = [
+    { $match: { _id: new ObjectId(params.id as string) } },
+    {
+      $project: {
+        name: 1,
+        url_image: { $concat: [process.env.ASSETS_BASE_URL || "", { $toLower: { $replaceAll: { input: "$name", find: " ", replacement: "_" } } }, ".png"] },
+        type: 1,
+        category: 1,
+        weight: 1,
+        poise_ratio: 1,
+        total_poise: 1,
+        upgrade: 1,
+      },
+    },
+    {
+      $addFields: {
+        orderedFields: {
+          _id: "$_id",
+          name: "$name",
+          url_image: "$url_image",
+          type: "$type",
+          category: "$category",
+          weight: "$weight",
+          poise_ratio: "$poise_ratio",
+          total_poise: "$total_poise",
+          upgrade: "$upgrade",
+        },
+      },
+    },
+    { $replaceRoot: { newRoot: "$orderedFields" } },
+  ];
+
+  let data = await collection.aggregate(pipeline).toArray();
+  const info ={
+      pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalCount: 1,
+      limit: 1
+    }
+  }
+  return {info,data};
+}
+
+const getCategories = async () => {
+  const client = await getMongoClient();
+  const db = client.db("DarkSouls");
+  const collection = db.collection("categories");
+  const data = await collection.find({name:"armors"}).toArray();
+  return data;
+};
 
 export const armorService = {
   getAll,
-  getUpgrades
+  getUpgrades,
+  getCategories,
+  getById
 };

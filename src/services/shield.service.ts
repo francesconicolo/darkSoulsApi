@@ -2,7 +2,7 @@ import { query, Request } from "express";
 import getMongoClient from "../config/mongodb-client";
 import { Filter, WithId, Document, ObjectId } from "mongodb";
 import { extractOperator, filtersByScaling, filtersGetAllWeapon } from "../utils/utils"; // Ensure filtersGetAll is a function
-
+import { get } from "http";
 
 
 const getAll = async (req: Request) => {
@@ -13,7 +13,7 @@ const getAll = async (req: Request) => {
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
-  const collection = db.collection("weapons");
+  const collection = db.collection("shields");
 
   // //CREO LA QUERY
   let queryBasic = filtersGetAllWeapon(params);
@@ -90,7 +90,7 @@ const getUpgrades = async (req: Request) => {
 
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
-  const collection = db.collection("weapons");
+  const collection = db.collection("shields");
 
   let queryBasic = filtersGetAllWeapon(params);
   let queryScaling = filtersByScaling(params);
@@ -188,7 +188,7 @@ const getById = async (req: Request) => {
   const params = req.params;
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
-  const collection = db.collection("weapons");
+  const collection = db.collection("shields");
   const pipeline = [
     { $match: { _id: new ObjectId(params.id as string) } },
     {
@@ -251,15 +251,18 @@ const getUpgradesType = async (req: Request) => {
   return data;
 };
 
+
 const getCategories = async () => {
   const client = await getMongoClient();
   const db = client.db("DarkSouls");
   const collection = db.collection("categories");
-  const data = await collection.find({name:"weapons"}).toArray();
+  const data = await collection.find({name:"shields"}).toArray();
   return data;
 };
 
-export const weaponService = {
+
+
+export const shieldService = {
   getAll,
   getUpgrades,
   getUpgradesType,

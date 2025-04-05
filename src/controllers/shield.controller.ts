@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { weaponService } from "../services/weapon.service";
-
+import { shieldService } from "../services/shield.service";
+import { get } from "http";
 
 const getAll = async (req: Request, res: Response) => {
   try {
-    const response = await weaponService.getAll(req);
+    const response = await shieldService.getAll(req);
     res.status(200).send(response);
   } catch (e) {
     res.status(500).send(e);
@@ -13,7 +13,7 @@ const getAll = async (req: Request, res: Response) => {
 
 const getById = async (req: Request, res: Response) => {
   try {
-    const response = await weaponService.getById(req);
+    const response = await shieldService.getById(req);
     res.status(200).send(response);
   } catch (e) {
     res.status(500).send(e);
@@ -22,16 +22,7 @@ const getById = async (req: Request, res: Response) => {
 
 const getUpgrades = async (req: Request, res: Response) => {
   try {
-    const response = await weaponService.getUpgrades(req);
-    res.status(200).send(response);
-  } catch (e) {
-    res.status(500).send(e);
-  }
-};
-
-const getUpgradesType = async (req: Request, res: Response) => {
-  try {
-    const response = await weaponService.getUpgradesType(req);
+    const response = await shieldService.getUpgrades(req);
     res.status(200).send(response);
   } catch (e) {
     res.status(500).send(e);
@@ -40,17 +31,16 @@ const getUpgradesType = async (req: Request, res: Response) => {
 
 const getCategories = async (req: Request, res: Response) => {
   try {
-    const response = await weaponService.getCategories();
+    const response = await shieldService.getCategories();
     res.status(200).send(response);
   } catch (e) {
     res.status(500).send(e);
   }
 };
 
-export const weaponController = {
+export const shieldController = {
   getAll,
   getUpgrades,
-  getUpgradesType,
   getCategories,
   getById
 };

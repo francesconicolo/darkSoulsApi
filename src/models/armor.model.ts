@@ -24,8 +24,8 @@ export type Upgrade = {
 }
 
 export enum ArmorCategoryEnum {
-  HEAD = "head",
-  CHEST = "chest",
-  LEGS = "legs",
-  ARMS = "arms"
+  HEAD = "Head",
+  CHEST = "Chest",
+  LEGS = "Legs",
+  ARMS = "Arms"
 }
