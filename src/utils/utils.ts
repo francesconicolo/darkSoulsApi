@@ -1,4 +1,4 @@
-import { Filter } from 'mongodb';
+import { Filter, Document, ObjectId } from 'mongodb';
 import QueryString, { ParsedQs } from 'qs';
 
 export const filtersGetAllWeapon = (params:QueryString.ParsedQs) => {
@@ -44,14 +44,16 @@ export const filtersGetAllWeapon = (params:QueryString.ParsedQs) => {
 
 export const filtersByScaling = (params:QueryString.ParsedQs) => {
   const upgradeType=['regular','chaos','raw','crystal','divine','occult','lightning','magic','enchanted','fire'];
-  const upgradeStat: { [key: string]: string[] }[] = [{'strength':['S','A','B','C','D','E','-']},{'dexterity':['S','A','B','C','D','E','-']},{'intelligence':['S','A','B','C','D','E','-']},{'faith':['S','A','B','C','D','E','-']}];
-  const damageReduction=['physical','magic','fire','lightning]']
+  // const upgradeStat: { [key: string]: string[] }[] = [{'strength':['S','A','B','C','D','E','-']},{'dexterity':['S','A','B','C','D','E','-']},{'intelligence':['S','A','B','C','D','E','-']},{'faith':['S','A','B','C','D','E','-']}];
+  const damageReduction=['physical_def','magic_def','fire_def','lightning_def']
+  const damageDealing=["physical_damage","magic_damage","fire_damage","lightning_damage","bleed","poison","occult","divine","critical","magic_adjustment"]
+
   let operator = extractOperator(params.operator)
   let queryScaling: { $or : Array<{ [key: string]: Array<{ [key: string]: string }> }> } = { $or: [] };
   
   let stats: { [key: string]: string[] }[] = [];
   let damageReductionStats: { [key: string]: string[] }[] = [];
-
+  let damageDealingStats: { [key: string]: string[] }[] = [];
   let type:string[]=[];
   //ELABORAZIONE DI PARAMETRI
   Object.entries(params).forEach(([key, value]) => {
@@ -72,10 +74,19 @@ export const filtersByScaling = (params:QueryString.ParsedQs) => {
     }
     if(damageReduction.includes(key)){
       if (Array.isArray(value)) {
-        damageReductionStats.push({ [key]: value.map(v => v.toString()) });
+        damageReductionStats.push({ [key.replace('_def','')]: value.map(v => v.toString()) });
       }else{
         if (value && !isNaN(Number(value))) {
-          damageReductionStats.push({ [key]: [value.toString()] });
+          damageReductionStats.push({ [key.replace('_def','')]: [value.toString()] });
+        }
+      }
+    }
+    if(damageDealing.includes(key)){
+      if (Array.isArray(value)) {
+        damageDealingStats.push({ [key]: value.map(v => v.toString()) });
+      }else{
+        if (value && !isNaN(Number(value))) {
+          damageDealingStats.push({ [key]: [value.toString()] });
         }
       }
     }
@@ -90,7 +101,6 @@ export const filtersByScaling = (params:QueryString.ParsedQs) => {
   });
   
   type = type.length > 0 ? type : upgradeType; // Se non ci sono tipi specificati, usa tutti i tipi disponibili
-
 
   type.forEach((type) => {
     let conditions: Array<{ [key: string]: any }> = [];
@@ -112,12 +122,20 @@ export const filtersByScaling = (params:QueryString.ParsedQs) => {
       });
       conditions.push(tempReduction);
     });
-    queryScaling.$or.push({ [operator]: conditions });
+    damageDealingStats.forEach((element) => {
+      let tempDamageDealing: { $or: Array<{ [key: string]: { [key: string]: Number } }> } = { $or: [] };
+      const key = Object.keys(element)[0];
+      const values = element[key] as string[];
+      values.forEach((value: string) => {
+      tempDamageDealing.$or.push({ [`upgrade.${type}.offensive_stats.${key}`]: { $gte: Number(value) } });
+      });
+      conditions.push(tempDamageDealing);
+    });
+    if(conditions.length > 0) {
+      queryScaling.$or.push({ [operator]: conditions });
+    }
   });
-  console.log(JSON.stringify(queryScaling, null, 2));
-  if (queryScaling.$or.length === 0) {
-    return {}; // Rimuovi la chiave $or se non ci sono condizioni
-  }
+
   return queryScaling
 }
 
@@ -201,4 +219,25 @@ export const filtersGetAllArmor = (params:QueryString.ParsedQs) => {
   }
 
   return query
+};
+export const lightFilters = (params: any) => {
+  const query: Filter<Document> = {};
+  if (params.id) {
+    try {
+      query._id = new ObjectId(params.id as string); // Convert to ObjectId using createFromHexString
+    } catch (error) {
+      console.error("Invalid ID format:", params.id);
+    }
+  }
+  if (params.name) {
+    query.name = { $regex: params.name, $options: "i" }; // Case-insensitive search
+  }
+  if (params.type) {
+    query.type = params.type;
+  }
+  if (params.category) {
+    query.category = params.category;
+  }
+  console.log("Query:", query); // Log the query for debugging
+  return query;
 };

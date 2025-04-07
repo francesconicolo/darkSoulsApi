@@ -1,8 +1,8 @@
-import { query, Request } from "express";
+import { Request } from "express";
 import getMongoClient from "../config/mongodb-client";
 import { Filter, WithId, Document, ObjectId } from "mongodb";
 import { extractOperator, filtersByScaling, filtersGetAllWeapon } from "../utils/utils"; // Ensure filtersGetAll is a function
-import { get } from "http";
+
 
 
 const getAll = async (req: Request) => {
@@ -17,8 +17,10 @@ const getAll = async (req: Request) => {
 
   // //CREO LA QUERY
   let queryBasic = filtersGetAllWeapon(params);
-  let queryScaling = filtersByScaling(params);
+  let tempQuery = filtersByScaling(params);
+  let queryScaling = tempQuery.$or.length > 0 ? tempQuery : {};
   let query = { $and: [queryBasic, queryScaling] };
+  
   //COSTRUZIONE DELLA PIPELINE
   const pipeline = [
     { $match: query },
@@ -91,7 +93,8 @@ const getUpgrades = async (req: Request) => {
   const collection = db.collection("shields");
 
   let queryBasic = filtersGetAllWeapon(params);
-  let queryScaling = filtersByScaling(params);
+  let tempQuery = filtersByScaling(params);
+  let queryScaling = tempQuery.$or.length > 0 ? tempQuery : {};
   let query = { $and: [queryBasic, queryScaling] };
 
   const createFilter = (upgradeType: string) => ({
@@ -104,10 +107,20 @@ const getUpgrades = async (req: Request) => {
           params.dexterity ? { $eq: ["$$item.scalings.dexterity", params.dexterity] } : extractOperator(params.operator) === '$or' ? false : true,
           params.intelligence ? { $eq: ["$$item.scalings.intelligence", params.intelligence] } : extractOperator(params.operator) === '$or' ? false : true,
           params.faith ? { $eq: ["$$item.scalings.faith", params.faith] } : extractOperator(params.operator) === '$or' ? false : true,
-          params.physical ? { $gte: ["$$item.defensive_stats.physical", Number(params.physical)] } : extractOperator(params.operator) === '$or' ? false : true,
-          params.magic ? { $gte: ["$$item.defensive_stats.magic", Number(params.magic)] }: extractOperator(params.operator)  === '$or' ? false : true,
-          params.fire ? { $gte: ["$$item.defensive_stats.fire", Number(params.fire)] } : extractOperator(params.operator) === '$or' ? false : true,
-          params.lightning ? { $gte: ["$$item.defensive_stats.lightning", Number(params.lightning)] } : extractOperator(params.operator)  === '$or' ? false : true,
+          params.physical_def ? { $gte: ["$$item.defensive_stats.physical", Number(params.physical_def)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.magic_def ? { $gte: ["$$item.defensive_stats.magic", Number(params.magic_def)] }: extractOperator(params.operator)  === '$or' ? false : true,
+          params.fire_def ? { $gte: ["$$item.defensive_stats.fire", Number(params.fire_def)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.lightning_def ? { $gte: ["$$item.defensive_stats.lightning", Number(params.lightning_def)] } : extractOperator(params.operator)  === '$or' ? false : true,
+          params.physical_damage ? { $gte: ["$$item.offensive_stats.physical_damage", Number(params.physical_damage)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.magic_damage ? { $gte: ["$$item.offensive_stats.magic_damage", Number(params.magic_damage)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.fire_damage ? { $gte: ["$$item.offensive_stats.fire_damage", Number(params.fire_damage)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.lightning_damage ? { $gte: ["$$item.offensive_stats.lightning_damage", Number(params.lightning_damage)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.bleed ? { $gte: ["$$item.offensive_stats.bleed", Number(params.bleed)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.poison ? { $gte: ["$$item.offensive_stats.poison", Number(params.poison)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.occult ? { $gte: ["$$item.offensive_stats.occult", Number(params.occult)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.divine ? { $gte: ["$$item.offensive_stats.divine", Number(params.divine)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.critical ? { $gte: ["$$item.offensive_stats.critical", Number(params.critical)] } : extractOperator(params.operator) === '$or' ? false : true,
+          params.magic_adjustment ? { $gte: ["$$item.offensive_stats.magic_adjustment", Number(params.magic_adjustment)] } : extractOperator(params.operator) === '$or' ? false : true,
         ]
       }
     }

@@ -4,11 +4,12 @@ import http from "http";
 import { weaponRoute } from "./routes/weapon.route";
 import { armorRoute } from "./routes/armor.route";
 import { shieldRoute } from "./routes/shield.route";
+import { generalRoute } from "./routes/general.route";
 
 
 
 
-const port = 3000;
+const port = 3001;
 const app = express();
 
 app.use(cors());
@@ -21,6 +22,9 @@ app.use("/api/weapon", weaponRoute);
 app.use("/api/armor", armorRoute);
 // Routes
 app.use("/api/shield", shieldRoute);
+// Routes
+app.use("/api/general", generalRoute);
+
 
 
 
